@@ -65,6 +65,10 @@ const SettingsPage = () => {
 
         <SettingsGroup title="ML & Decision Engine" icon={Brain}>
           <div className="flex justify-between items-center cursor-pointer group">
+            <div><p className="text-sm font-medium text-white mb-1">Use Online Cloud AI (Gemini)</p><p className="text-xs text-gray-500 group-hover:text-gray-400 transition-colors">Toggle off to force Offline Local ML (Random Forest)</p></div>
+            <Toggle active={true} />
+          </div>
+          <div className="flex justify-between items-center cursor-pointer group">
             <div><p className="text-sm font-medium text-white mb-1">Fault Tolerance Mode</p><p className="text-xs text-gray-500 group-hover:text-gray-400 transition-colors">Auto-fallback to rule-based engine on ML failure</p></div>
             <Toggle active={true} />
           </div>
