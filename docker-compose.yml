@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:8080"
+    environment:
+      - MONGODB_URI=${MONGODB_URI:-mongodb://localhost:27017/aquasmart}
+      - FIREBASE_CONFIG=${FIREBASE_CONFIG}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - FLASK_ENV=development
+    depends_on:
+      - redis
+    networks:
+      - aquasmart_net
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - aquasmart_net
+
+networks:
+  aquasmart_net:
+    driver: bridge
