@@ -49,6 +49,7 @@ function App() {
             </Routes>
           </div>
         </main>
+        </div>
       </div>
     </BrowserRouter>
   );
