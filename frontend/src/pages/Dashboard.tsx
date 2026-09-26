@@ -1,6 +1,17 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Droplet, Activity, CloudRain, Thermometer, Info } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+
+const mockChartData = [
+  { time: '08:00', moisture: 42 },
+  { time: '10:00', moisture: 38 },
+  { time: '12:00', moisture: 35 },
+  { time: '14:00', moisture: 55 },
+  { time: '16:00', moisture: 51 },
+  { time: '18:00', moisture: 48 },
+  { time: '20:00', moisture: 45 },
+];
 
 const StatCard = ({ title, value, icon: Icon, delay = 0 }) => (
   <motion.div
@@ -50,8 +61,25 @@ const Dashboard: React.FC = () => {
               <span className="px-3 py-1 rounded-full bg-surface/50 text-xs font-medium text-gray-400 cursor-pointer hover:text-white transition">Farm Beta</span>
             </div>
           </div>
-          <div className="w-full h-[300px] flex items-center justify-center border border-white/5 rounded-lg bg-surface/30">
-            <p className="text-gray-500 text-sm flex items-center gap-2"><Info className="w-4 h-4"/> Area chart rendering...</p>
+          <div className="w-full h-[300px] mt-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={mockChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorMoisture" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                <XAxis dataKey="time" stroke="#6b7280" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="#6b7280" fontSize={12} tickLine={false} axisLine={false} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#111827', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff' }}
+                  itemStyle={{ color: '#4ade80' }}
+                />
+                <Area type="monotone" dataKey="moisture" stroke="#22c55e" strokeWidth={3} fillOpacity={1} fill="url(#colorMoisture)" />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </motion.div>
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Droplets, Thermometer, Wind, CloudRain, Sun, Activity, Info } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import clsx from 'clsx';
 
 const mockSensors = [
@@ -10,6 +11,15 @@ const mockSensors = [
   { id: 's4', label: 'Light Intensity', value: '149 lux', optimal: 'Varies by crop', icon: Sun, status: 'Healthy' },
   { id: 's5', label: 'Wind Speed', value: '10.4 km/h', optimal: '<15 km/h', icon: Wind, status: 'Healthy' },
   { id: 's6', label: 'Rainfall', value: '0.0 mm', optimal: 'Current hour', icon: Activity, status: 'Healthy' },
+];
+
+const mockChartData = [
+  { time: '10:00', moisture: 42, temp: 22, hum: 60 },
+  { time: '12:00', moisture: 38, temp: 24, hum: 55 },
+  { time: '14:00', moisture: 35, temp: 26, hum: 50 },
+  { time: '16:00', moisture: 55, temp: 25, hum: 65 },
+  { time: '18:00', moisture: 51, temp: 23, hum: 70 },
+  { time: '20:00', moisture: 48, temp: 21, hum: 75 },
 ];
 
 const SensorCard = ({ sensor, index }) => {
@@ -51,6 +61,7 @@ const SensorCard = ({ sensor, index }) => {
 
 const SensorsPage = () => {
   const [activeFarm, setActiveFarm] = useState('Farm Alpha');
+  const [activeMetric, setActiveMetric] = useState('moisture');
 
   return (
     <div className="max-w-6xl animate-in fade-in duration-500 pb-10">
@@ -84,11 +95,48 @@ const SensorsPage = () => {
       </div>
 
       <div className="glass-card p-6 mb-8">
-        <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-          <Activity className="w-5 h-5 text-gray-400" /> Historical Readings
-        </h2>
-        <div className="h-64 w-full flex items-center justify-center bg-surface/30 rounded-lg border border-white/5">
-           <p className="text-gray-500 text-sm flex items-center gap-2"><Info className="w-4 h-4"/> Multi-series area chart loading...</p>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <Activity className="w-5 h-5 text-gray-400" /> Historical Readings
+          </h2>
+          <div className="flex gap-2 bg-surface/50 p-1 rounded-lg border border-white/5">
+            {['moisture', 'temp', 'hum'].map(metric => (
+              <button
+                key={metric}
+                onClick={() => setActiveMetric(metric)}
+                className={clsx(
+                  "px-3 py-1 rounded-md text-xs font-medium capitalize",
+                  activeMetric === metric ? "bg-brand-primary text-bg" : "text-gray-400 hover:text-white"
+                )}
+              >
+                {metric}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="w-full h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={mockChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorMetric" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={activeMetric === 'temp' ? '#ef4444' : activeMetric === 'hum' ? '#3b82f6' : '#22c55e'} stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor={activeMetric === 'temp' ? '#ef4444' : activeMetric === 'hum' ? '#3b82f6' : '#22c55e'} stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+              <XAxis dataKey="time" stroke="#6b7280" fontSize={12} tickLine={false} axisLine={false} />
+              <YAxis stroke="#6b7280" fontSize={12} tickLine={false} axisLine={false} />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#111827', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff' }}
+              />
+              <Area 
+                type="monotone" 
+                dataKey={activeMetric} 
+                stroke={activeMetric === 'temp' ? '#ef4444' : activeMetric === 'hum' ? '#3b82f6' : '#22c55e'} 
+                strokeWidth={3} fillOpacity={1} fill="url(#colorMetric)" 
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
       </div>
 

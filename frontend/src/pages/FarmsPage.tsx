@@ -71,13 +71,18 @@ const FarmCard = ({ farm }) => {
               <MapPin className="w-4 h-4" /> {farm.location}
             </p>
           </div>
-          <button 
-            onClick={() => setExpanded(!expanded)}
-            className="flex items-center gap-1 px-4 py-2 rounded-lg bg-brand-primary/10 text-brand-light font-medium text-sm hover:bg-brand-primary/20 transition-colors"
-          >
-            {expanded ? 'Collapse' : 'Details'} 
-            <motion.div animate={{ rotate: expanded ? 90 : 0 }}><ChevronRight className="w-4 h-4" /></motion.div>
-          </button>
+          <div className="flex gap-2">
+            <button className="flex items-center gap-1 px-4 py-2 rounded-lg bg-surface-light border border-white/5 text-gray-300 font-medium text-sm hover:bg-surface-lighter transition-colors">
+              Crop Setup
+            </button>
+            <button 
+              onClick={() => setExpanded(!expanded)}
+              className="flex items-center gap-1 px-4 py-2 rounded-lg bg-brand-primary/10 text-brand-light font-medium text-sm hover:bg-brand-primary/20 transition-colors"
+            >
+              {expanded ? 'Collapse' : 'Details'} 
+              <motion.div animate={{ rotate: expanded ? 90 : 0 }}><ChevronRight className="w-4 h-4" /></motion.div>
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -161,12 +166,17 @@ const FarmsPage = () => {
     <div className="max-w-4xl animate-in fade-in duration-500">
       <header className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-extrabold text-white">Your Farms</h1>
-        <div className="px-4 py-2 rounded-full bg-surface-light border border-white/5 text-sm text-gray-400 font-medium">
-          2 farms • 7 zones total
+        <div className="flex gap-2">
+          <button className="px-4 py-2 rounded-lg bg-surface-light border border-white/5 text-sm text-gray-300 font-medium hover:text-white hover:bg-surface-lighter transition-colors">
+            + Add Field
+          </button>
+          <div className="px-4 py-2 rounded-full bg-surface-light border border-white/5 text-sm text-gray-400 font-medium">
+            2 farms • 7 zones total
+          </div>
         </div>
       </header>
 
-      <div className="space-y-2">
+      <div className="space-y-4">
         {mockFarms.map(farm => (
           <FarmCard key={farm.id} farm={farm} />
         ))}

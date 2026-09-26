@@ -7,6 +7,7 @@ import AlertsPage from './pages/AlertsPage';
 import SettingsPage from './pages/SettingsPage';
 import SensorsPage from './pages/SensorsPage';
 import MLModelsPage from './pages/MLModelsPage';
+import ProfilePage from './pages/ProfilePage';
 
 function App() {
   return (
@@ -44,6 +45,7 @@ function App() {
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/sensors" element={<SensorsPage />} />
               <Route path="/models" element={<MLModelsPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
             </Routes>
           </div>
         </main>
