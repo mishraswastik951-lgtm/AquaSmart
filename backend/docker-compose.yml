@@ -1,0 +1,34 @@
+version: '3.8'
+services:
+  backend:
+    build: .
+    ports:
+      - "5000:8080"
+    environment:
+      MONGODB_URI: ${MONGODB_URI}
+      FIREBASE_CONFIG: ${FIREBASE_CONFIG}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+    depends_on:
+      - redis
+    networks:
+      - aquasmart
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - aquasmart
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    networks:
+      - aquasmart
+
+networks:
+  aquasmart:
+    driver: bridge

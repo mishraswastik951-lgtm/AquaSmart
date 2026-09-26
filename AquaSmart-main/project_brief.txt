@@ -1,0 +1,315 @@
+Distributed IoT-Based
+Smart Irrigation System
+Using Virtual Sensors and Machine Learning
+Full Project Brief — All Components
+Tech Stack
+Python, MongoDB, Flask, React, Kafka
+ML Models
+RF, LSTM, XGBoost, SVM
+Architecture
+Distributed, Cloud, Multi-farm
+Auth
+JWT, Role-based access
+1. Project Overview
+This project builds a distributed, cloud-based smart irrigation system that uses virtual sensors (CSV data), machine learning models, and automated decision logic to determine when and how much to irrigate. The system is hardware-independent, meaning it works entirely with simulated sensor data today and can be upgraded to physical sensors (ESP32) in the future without changing the core pipeline.
+Project title
+Distributed IoT-Based Smart Irrigation System Using Virtual Sensors and ML
+Core idea
+Simulate IoT sensors via CSV → ML prediction → automated irrigation decision
+Architecture
+Distributed, cloud-based, multi-farm, Kafka-powered, fault-tolerant
+Hardware
+Hardware-independent (virtual sensors now, ESP32 future)
+Database
+MongoDB with 4 collections
+Message queue
+Apache Kafka — 4 topics
+Backend
+Flask REST API (Python)
+Frontend
+React dashboard with live charts and alerts
+Authentication
+JWT-based login with Admin and Farmer roles
+2. Complete System Flow
+The full pipeline from raw input to irrigation decision flows through eight stages:
+Step
+Stage
+What happens
+1
+CSV Input
+Each farm's data file (Farm_A.csv etc.) is read row by row, simulating real-time sensor readings
+2
+Sensor Abstraction Layer
+Normalises all inputs into standard JSON: { farm_id, temp, humidity, rainfall, soil_moisture, timestamp }
+3
+Kafka Producer
+Each virtual sensor publishes its JSON message to the Kafka 'sensor-data' topic, keyed by farm_id
+4
+Feature Engineering
+Evaporation = Temp × (1 - Humidity), moving average soil moisture, time-based features, rainfall history
+5
+ML Service (Consumer)
+Reads from sensor-data topic, runs prediction model, publishes result to ml-predictions topic
+6
+Decision Engine
+Reads from ml-predictions, applies threshold logic: IF soil_moisture < threshold → irrigate ELSE skip
+7
+MongoDB Writer
+Consumes irrigation-decisions and alerts topics, persists all records with farm_id tag
+8
+Dashboard & Alerts
+Flask API serves data to React dashboard; alert service sends email/push on low moisture or failure
+3. Inputs and Virtual Sensor Outputs
+3.1 Input Parameters
+The system accepts the following inputs per farm, per timestamp:
+Temperature (°C)
+Humidity (%)
+Rainfall (mm)
+Previous soil moisture (%)
+Timestamp
+Crop type (optional — e.g. wheat, rice)
+Soil type (optional — e.g. clay, sandy, loamy)
+3.2 Virtual Sensor Outputs
+The virtual sensor layer computes derived values from the raw inputs:
+Soil moisture
+Predicted by the ML model based on temperature, humidity, and rainfall
+Evaporation
+Calculated as: Temperature × (1 − Humidity / 100)
+Water loss
+Derived from evaporation rate + crop type coefficient
+Water requirement
+Decision-ready value used by the irrigation engine
+4. Feature Engineering
+Raw sensor values are transformed into ML-ready features before model inference:
+Evaporation formula
+Temp × (1 − Humidity) — captures heat-driven moisture loss
+Moving average moisture
+Rolling 3-reading average smooths sensor noise
+Rainfall history
+Cumulative rainfall over past N readings
+Time-based features
+Hour of day, day of week — captures irrigation patterns
+Crop coefficient
+Multiplier per crop type to adjust water requirement
+Soil retention factor
+Clay retains more water than sandy — adjusts threshold
+5. Machine Learning Models
+5.1 Core Prediction Models
+These models predict the continuous soil moisture value:
+Model
+Type
+Role in project
+Random Forest
+Regression
+Primary soil moisture predictor — handles non-linear feature interactions well
+XGBoost
+Regression
+Boosted tree model — high accuracy on structured tabular CSV data
+LightGBM
+Regression
+Faster variant of gradient boosting — suitable for large multi-farm datasets
+Linear Regression
+Regression
+Baseline model — used to benchmark against complex models
+LSTM
+Time-series (Deep Learning)
+Captures sequential moisture trends over time — ideal for detecting drying patterns
+5.2 Decision Models
+After soil moisture is predicted, these models make the binary irrigate / skip decision:
+Model
+Role
+Logistic Regression
+Simple baseline classifier — fast and interpretable
+SVM (Support Vector Machine)
+Works well with small datasets and clear decision boundaries
+Naive Bayes
+Probabilistic classifier — useful when features are independent
+Rule-Based Model
+IF soil_moisture < threshold THEN irrigate — primary fallback logic
+Ensemble (Voting)
+Combines predictions from multiple models for more robust final decision
+5.3 Model Evaluation Plan
+All models must be evaluated before deployment. Recommended metrics:
+Train/test split: 80% training, 20% testing
+Regression metrics: RMSE (Root Mean Squared Error), MAE, R² score
+Classification metrics: Accuracy, Precision, Recall, F1 Score
+Cross-validation: 5-fold CV to prevent overfitting on small datasets
+Comparison table: log all model results for project report
+6. Kafka Message Queue
+Apache Kafka decouples the pipeline stages. Each component only publishes or consumes from Kafka topics — no direct service-to-service calls. This means if one service crashes, no data is lost and it resumes from where it stopped.
+6.1 The Four Topics
+Topic
+Producer
+Consumer(s)
+Message content
+sensor-data
+Virtual sensor (CSV reader)
+ML service
+farm_id, temp, humidity, rainfall, soil_moisture, timestamp
+ml-predictions
+ML service
+Decision engine
+farm_id, predicted_moisture, model_used, timestamp
+irrigation-decisions
+Decision engine
+MongoDB writer, Dashboard
+farm_id, decision (irrigate/skip), confidence, timestamp
+alerts
+Decision engine
+Alert service
+farm_id, alert_type, message, timestamp
+7. MongoDB Database
+MongoDB stores all data with farm_id as the primary scoping key across all collections. Every document is tagged with its source farm so queries can be filtered per farm.
+Collection
+Fields stored
+farms
+farm_id, name, location, crop_type, soil_type, owner_user_id, moisture_threshold
+sensor_data
+farm_id, temperature, humidity, rainfall, soil_moisture, timestamp, source (virtual/physical)
+virtual_sensor_data
+farm_id, evaporation, water_loss, water_requirement, computed_moisture, timestamp
+irrigation_logs
+farm_id, decision (irrigate/skip), predicted_moisture, model_used, confidence, timestamp
+users
+user_id, username, password_hash (bcrypt), role (admin/farmer), farm_ids (list), created_at
+8. Authentication and Login
+Every user must log in before accessing the dashboard. The Flask auth service validates credentials and issues a JWT token valid for 24 hours. All subsequent API calls must include this token in the Authorization header.
+8.1 Auth Flow
+User opens dashboard → redirected to login page
+Submits username + password → Flask POST /auth/login
+Flask checks MongoDB users collection (bcrypt password verification)
+On success: JWT issued containing user_id, role, farm_ids, expiry
+On failure: 401 error → login page shows error message
+JWT stored in browser (localStorage or httpOnly cookie)
+Every API route decorated with @jwt_required — token validated per request
+8.2 User Roles
+Admin
+Sees all farms, all sensor data, all irrigation logs, system health, full alert history
+Farmer
+Sees only farms assigned to their account (farm_ids in JWT) — other farms are hidden
+8.3 Libraries
+flask-jwt-extended — JWT creation, validation, refresh
+bcrypt — password hashing (never store plain text passwords)
+New MongoDB collection: users
+9. Distributed Multi-Farm Design
+The system is designed to manage multiple farms simultaneously from a single cloud. Each farm has its own identity — a unique farm_id — that flows through every layer of the system.
+Each farm = one CSV file (Farm_A.csv, Farm_B.csv, Farm_C.csv...)
+Same Kafka pipeline handles all farms — messages keyed by farm_id for parallel processing
+ML models run predictions per farm using that farm's historical data
+MongoDB documents are always scoped by farm_id — data never mixes between farms
+Dashboard has a farm selector — switch between farms to view independent data
+Admin sees all farms; Farmer sees only their assigned farms
+Future: each physical farm deploys an ESP32 that POSTs to the same Flask API
+10. Fault Tolerance
+The system is designed to degrade gracefully — if any component fails, a fallback takes over rather than crashing the whole pipeline.
+Failure scenario
+Fallback behaviour
+Missing sensor data
+Use last known value from previous reading
+Physical sensor failure
+Switch automatically to virtual sensor (CSV fallback)
+ML model failure / error
+Fall back to rule-based decision: IF moisture < threshold THEN irrigate
+MongoDB unavailable
+Buffer writes to local storage, retry when connection restored
+Kafka broker down
+Sensor producers retry with exponential backoff
+Flask API unreachable
+Dashboard shows cached data; retry mechanism re-fetches
+No internet / offline
+Offline mode — last known irrigation decision is preserved locally
+11. Technology Stack
+Layer
+Technology
+Purpose
+Data input
+CSV files (Python pandas)
+Simulate sensor readings per farm
+Virtual sensors
+Python scripts
+Read CSV, compute derived values
+Feature engineering
+Python (pandas, numpy)
+Evaporation, moving averages, time features
+ML models
+scikit-learn, XGBoost, LightGBM, TensorFlow/Keras (LSTM)
+Soil moisture prediction and irrigation decision
+Message queue
+Apache Kafka + kafka-python
+Decouple pipeline stages, parallel multi-farm processing
+Database
+MongoDB (pymongo)
+Store all sensor data, decisions, logs, users
+Backend API
+Flask + flask-jwt-extended
+REST API, authentication, data serving
+Frontend
+React.js + Chart.js / Recharts
+Dashboard, charts, farm selector, alert display
+Auth
+JWT + bcrypt
+Secure login, role-based access
+Containerisation
+Docker + Docker Compose
+Run Kafka, MongoDB, Flask, React together
+12. Dashboard Features
+The React dashboard is the user-facing layer of the project. It connects to the Flask API and displays real-time and historical data per farm.
+Farm selector dropdown — switch between Farm A, B, C
+Live soil moisture gauge per farm — current predicted value
+Time-series chart — soil moisture trend over last N readings
+Irrigation decision feed — irrigate / skip log with timestamps
+Weather panel — current temperature, humidity, rainfall per farm
+Alert panel — low moisture alerts, over-irrigation warnings, system failures
+Water usage summary — total water consumed per farm per day/week
+Model info panel — which ML model made the last prediction and with what confidence
+13. Alert System
+Low moisture alert
+Soil moisture drops below the configured threshold — irrigation recommended immediately
+Over-irrigation alert
+System has irrigated too frequently — risk of waterlogging or root damage
+System failure alert
+ML model error, Kafka broker down, or MongoDB connection lost
+Sensor anomaly alert
+Reading is outside valid range — possible sensor malfunction or CSV data error
+14. Sensor Abstraction Layer
+This is the bridge that makes future physical sensor integration seamless. The abstraction layer normalises all inputs — regardless of source — into the same standard JSON format before they enter the Kafka pipeline.
+Today (virtual)
+Python script reads Farm_A.csv row by row, formats as JSON, publishes to Kafka
+Future (physical)
+ESP32 sends HTTP POST to Flask endpoint, same JSON format, same Kafka topic
+Standard format
+{ farm_id, temperature, humidity, rainfall, soil_moisture, timestamp }
+What changes
+Only the input handler — Kafka, ML, MongoDB, dashboard stay identical
+source field
+MongoDB document tagged as source: 'virtual' or source: 'physical' for filtering
+15. Limitations and Future Scope
+15.1 Known Limitations
+Uses simulated data — accuracy depends entirely on CSV dataset quality
+No real sensor deployment in current version
+LSTM requires significant historical data — may underperform on small datasets
+No real-time weather API integration (future scope)
+Single-region deployment — not globally distributed yet
+15.2 Future Scope
+ESP32 / Arduino physical sensor deployment per farm
+Mobile app (React Native) for farmer notifications
+Weather API integration (OpenWeatherMap) for rainfall forecasting
+Advanced deep learning models (LSTM autoencoder for anomaly detection)
+Real-time deployment on AWS / Google Cloud
+Drip irrigation actuator control (close the loop — automate the valve)
+Satellite imagery integration for large-scale crop monitoring
+16. Project Summary
+Key strengths
+Complete end-to-end architecture: data → ML → decision → storage → UI
+Kafka decouples all services — crash-resilient and scalable
+Multi-farm distributed design with per-farm data isolation
+Six-layer fault tolerance — graceful degradation at every failure point
+JWT authentication with role-based access (admin vs farmer)
+Hardware-independent today, sensor-ready tomorrow via abstraction layer
+Recommended build order
+Phase 1 — Core ML pipeline (CSV → feature engineering → Random Forest → rule-based decision → MongoDB)
+Phase 2 — Add Kafka (replace direct calls with producer/consumer pattern)
+Phase 3 — Flask API + React dashboard (basic charts and farm selector)
+Phase 4 — Authentication (login page, JWT, roles, users collection)
+Phase 5 — Advanced models (LSTM, XGBoost) + model evaluation comparison
+Phase 6 (future) — Physical sensors (ESP32), mobile app, weather API

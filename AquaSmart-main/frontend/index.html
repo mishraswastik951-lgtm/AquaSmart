@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AquaSmart Irrigation Portal</title>
+    <meta name="description" content="AquaSmart - Intelligent Irrigation Management System with ML-powered predictions and real-time IoT sensor integration.">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    
+    <!-- Animated Background Elements -->
+    <div class="glow-blob blob-1"></div>
+    <div class="glow-blob blob-2"></div>
+    <div class="glow-blob blob-3"></div>
+    <div id="particles-container"></div>
+
+    <!-- Login page removed - direct dashboard access -->
+
+    <!-- ========================================== -->
+    <!-- SHARED NAVIGATION HEADER (visible on all pages except login) -->
+    <!-- ========================================== -->
+    <header class="dashboard-header" id="main-header">
+        <div class="header-logo" onclick="navigateTo('dashboard')">
+            <i class="fa-solid fa-droplet logo-purple"></i>
+            <span>AQUASMART <span class="logo-badge">PRO</span></span>
+        </div>
+        
+        <nav class="header-nav">
+            <a href="#dashboard" class="nav-item active" data-page="dashboard">
+                <i class="fa-solid fa-house"></i> <span class="nav-text">Dashboard</span>
+            </a>
+            <a href="#models" class="nav-item" data-page="models">
+                <i class="fa-solid fa-brain"></i> <span class="nav-text">ML Models</span>
+            </a>
+            <a href="#sensors" class="nav-item" data-page="sensors">
+                <i class="fa-solid fa-rss"></i> <span class="nav-text">Sensors</span>
+            </a>
+            <a href="#about" class="nav-item" data-page="about">
+                <i class="fa-solid fa-circle-info"></i> <span class="nav-text">About</span>
+            </a>
+        </nav>
+        
+        <div class="header-user">
+            <span id="user-display-name">Alex R.</span>
+            <button id="logout-btn" title="Log Out"><i class="fa-solid fa-power-off"></i></button>
+        </div>
+    </header>
+
+    <!-- ========================================== -->
+    <!-- 2. DASHBOARD PAGE -->
+    <!-- ========================================== -->
+    <div id="page-dashboard" class="page active">
+        <div class="page-inner">
+            <div class="dashboard-main-title">
+                <h1 class="page-title-animate">OVERVIEW</h1>
+                <div class="system-status">
+                    <span class="status-indicator online pulse-dot"></span> System Active
+                </div>
+            </div>
+
+            <!-- CONTROLS & SELECTORS BAR -->
+            <div class="dashboard-selector-bar glass-panel stagger-1">
+                <div class="selector-group" style="flex: 1;">
+                    <label><i class="fa-solid fa-seedling"></i> Active Field</label>
+                    <div style="display: flex; gap: 10px;">
+                        <select id="farm-selector" style="flex: 1;"></select>
+                        <button id="btn-add-field" class="btn btn-purple-glow" style="padding: 0 15px; height: 38px;" title="Add New Field"><i class="fa-solid fa-plus"></i> Add Field</button>
+                    </div>
+                </div>
+                
+                <!-- Hidden Advanced Settings (Kept in DOM to avoid JS errors) -->
+                <div style="display: none;">
+                    <select id="regressor-selector">
+                        <option value="XGBoost" selected>High Precision (XGBoost)</option>
+                        <option value="Random Forest">Balanced (Random Forest)</option>
+                        <option value="Linear Regression">Basic (Linear)</option>
+                        <option value="LSTM (Neural Network)">Deep Learning (LSTM)</option>
+                    </select>
+                    <select id="classifier-selector">
+                        <option value="Voting Ensemble" selected>AI Ensemble (Recommended)</option>
+                        <option value="XGBoost Classifier">High Precision AI</option>
+                        <option value="Random Forest Classifier">Balanced AI</option>
+                        <option value="SVM">Pattern Recognition (SVM)</option>
+                        <option value="Logistic Regression">Basic Logic</option>
+                        <option value="Rule-Based">Standard Threshold (Fallback)</option>
+                    </select>
+                </div>
+
+                <div class="selector-group" style="display: flex; align-items: center; justify-content: flex-end; gap: 15px;">
+                    <span id="quick-status-badge" class="status-badge" style="background: rgba(16, 185, 129, 0.12); color: var(--color-green); padding: 8px 16px; border-radius: 20px; font-weight: 700; font-size: 0.85rem; border: 1px solid rgba(16, 185, 129, 0.3);">
+                        <i class="fa-solid fa-circle-check"></i> System Auto-Pilot Active
+                    </span>
+                </div>
+            </div>
+
+            <!-- GRID LAYOUT -->
+            <div class="dashboard-grid">
+                
+                <!-- LEFT PANEL: PROFILE & QUICK INFO -->
+                <div class="grid-panel panel-left glass-panel stagger-2">
+                    <div class="profile-card">
+                        <div class="avatar-container">
+                            <div class="avatar-ring"></div>
+                            <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150" alt="User Avatar" class="profile-avatar">
+                        </div>
+                        <h3 id="profile-name">Ramesh Kumar</h3>
+                        <div class="role-badge" id="profile-role">Field Owner</div>
+                        
+                        <div class="profile-stats" style="margin-top: 15px;">
+                            <div class="stat-item">
+                                <span class="stat-num counter" data-target="3" id="stat-farms-count">0</span>
+                                <span class="stat-lbl">Fields</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-num counter" data-target="0" id="stat-active-alerts">0</span>
+                                <span class="stat-lbl">Alerts</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- LIVE WEATHER PANEL -->
+                    <div class="weather-card card-sub" style="text-align: center; padding: 15px; border-radius: var(--border-radius-md); background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.03);">
+                        <h4 style="margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.95rem;">
+                            <i class="fa-solid fa-cloud-sun" style="color: var(--neon-purple);"></i> Live Weather
+                        </h4>
+                        <div style="font-size: 2.2rem; font-weight: 800; margin: 5px 0; color: white;" id="weather-temp">--°C</div>
+                        <div style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 12px; text-transform: capitalize;" id="weather-desc">Loading...</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.75rem; text-align: left;">
+                            <div style="background: rgba(255,255,255,0.03); padding: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.02);">
+                                <span style="color: var(--text-muted); display: block; font-size: 0.65rem; text-transform: uppercase;">Wind Speed</span>
+                                <strong id="weather-wind" style="color: white; font-size: 0.8rem;">-- km/h</strong>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.03); padding: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.02);">
+                                <span style="color: var(--text-muted); display: block; font-size: 0.65rem; text-transform: uppercase;">Humidity</span>
+                                <strong id="weather-humidity" style="color: white; font-size: 0.8rem;">--%</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FARM SETTINGS METADATA -->
+                    <div class="farm-details-card card-sub" style="text-align: center; padding-top: 15px;">
+                        <div id="crop-icon-display" style="font-size: 3rem; color: var(--neon-purple); margin-bottom: 10px; text-shadow: 0 0 15px rgba(189, 82, 252, 0.4);">
+                            <i class="fa-solid fa-wheat-awn"></i>
+                        </div>
+                        <h4 style="margin-bottom: 15px;">Field Details</h4>
+                        <ul class="detail-list" style="text-align: left;">
+                            <li><span>Crop Type</span> <strong id="farm-crop-val">Rice</strong></li>
+                            <li><span>Soil Comp.</span> <strong id="farm-soil-val">Loam</strong></li>
+                            <li><span>Target Moisture</span> <strong id="farm-threshold-val">45%</strong></li>
+                            <li><span>Sensor ID</span> <strong id="farm-node-val">Node-B90</strong></li>
+                        </ul>
+                        
+                        <div class="crop-health-panel" style="margin-top: 20px;">
+                            <h5 style="margin-bottom: 10px; font-size: 0.9rem; color: var(--text-sub);">Crop Health</h5>
+                            <div class="moisture-gauge-container" style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; border: 1px solid rgba(255,255,255,0.05);">
+                                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 5px;">
+                                    <span>Current Moisture</span>
+                                    <span id="gauge-moisture-val" style="font-weight: bold; color: var(--color-green);">--%</span>
+                                </div>
+                                <div class="gauge-track" style="height: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; overflow: hidden; position: relative;">
+                                    <div id="gauge-fill" class="gauge-fill" style="height: 100%; width: 0%; background: linear-gradient(90deg, #ef4444, #f59e0b, #10b981); transition: width 0.5s ease;"></div>
+                                    <div id="gauge-target-marker" style="position: absolute; top: 0; bottom: 0; width: 2px; background: white; left: 45%; box-shadow: 0 0 5px white;"></div>
+                                </div>
+                                <div style="text-align: right; font-size: 0.7rem; color: var(--text-muted); margin-top: 4px;">Target: <span id="gauge-target-val">45%</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MIDDLE PANEL: MAIN TELEMETRY CHART & CONTROLS -->
+                <div class="grid-panel panel-middle glass-panel stagger-3">
+                    <div class="chart-header">
+                        <div class="title-area">
+                            <h2>Dashboard</h2>
+                            <span class="sub-title">Soil Moisture Trend & Live Predictions</span>
+                        </div>
+                        <div class="chart-options">
+                            <span class="chart-legend"><span class="legend-dot purple"></span> Soil Moisture %</span>
+                        </div>
+                    </div>
+
+                    <!-- LIVE SVG CHART CONTAINER -->
+                    <div class="chart-container" id="chart-container">
+                        <svg id="live-chart" viewBox="0 0 600 240" preserveAspectRatio="none">
+                            <g class="grid-lines" id="chart-grid-lines"></g>
+                            <defs>
+                                <linearGradient id="chart-glow" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#bd52fc" stop-opacity="0.45"/>
+                                    <stop offset="100%" stop-color="#bd52fc" stop-opacity="0.0"/>
+                                </linearGradient>
+                            </defs>
+                            <path class="chart-area" id="chart-area-path" d="" fill="url(#chart-glow)"></path>
+                            <path class="chart-line" id="chart-line-path" d=""></path>
+                            <g id="chart-dots"></g>
+                        </svg>
+                        <div class="chart-empty-message hidden" id="chart-empty">No telemetry data loaded. Click "Simulate Next Reading".</div>
+                    </div>
+
+                    <!-- PARAMETERS KPI ROW -->
+                    <div class="kpi-row">
+                        <div class="kpi-card hover-lift">
+                            <div class="kpi-icon orange"><i class="fa-solid fa-temperature-half"></i></div>
+                            <div class="kpi-info">
+                                <span class="kpi-lbl">Temperature</span>
+                                <h3 class="kpi-val" id="kpi-temp">--°C</h3>
+                            </div>
+                        </div>
+                        <div class="kpi-card hover-lift">
+                            <div class="kpi-icon blue"><i class="fa-solid fa-droplet"></i></div>
+                            <div class="kpi-info">
+                                <span class="kpi-lbl">Air Humidity</span>
+                                <h3 class="kpi-val" id="kpi-humidity">--%</h3>
+                            </div>
+                        </div>
+                        <div class="kpi-card hover-lift">
+                            <div class="kpi-icon teal"><i class="fa-solid fa-cloud-showers-heavy"></i></div>
+                            <div class="kpi-info">
+                                <span class="kpi-lbl">Precipitation</span>
+                                <h3 class="kpi-val" id="kpi-rain">-- mm</h3>
+                            </div>
+                        </div>
+                        <div class="kpi-card hover-lift">
+                            <div class="kpi-icon green"><i class="fa-solid fa-gauge-high"></i></div>
+                            <div class="kpi-info">
+                                <span class="kpi-lbl">Soil Moisture</span>
+                                <h3 class="kpi-val" id="kpi-moisture">--%</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SIMULATION BUTTONS -->
+                    <div class="dashboard-action-buttons">
+                        <button id="simulate-step-btn" class="btn btn-purple-glow">
+                            <i class="fa-solid fa-sync"></i> <span>Check Sensors & Update</span>
+                        </button>
+                        <button id="manual-override-btn" class="btn btn-secondary" style="border-color: var(--color-orange); color: var(--color-orange);">
+                            <i class="fa-solid fa-power-off"></i> <span>Manual Pump Override</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- RIGHT PANEL: ALERTS AND DECISIONS FEED -->
+                <div class="grid-panel panel-right glass-panel stagger-4">
+                    <div class="alerts-section">
+                        <h3><i class="fa-solid fa-bell"></i> Alerts Feed</h3>
+                        <div id="alerts-list-container">
+                            <div class="empty-alerts">
+                                <i class="fa-solid fa-circle-check green-icon"></i>
+                                <p>All safety boundaries normal. No active warnings.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-section">
+                        <h3><i class="fa-solid fa-list-check"></i> Recent Activity</h3>
+                        <div class="timeline" id="timeline-container">
+                            <div class="timeline-empty">
+                                <p>No activity logs. Ingest telemetry data to start.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="system-footer">
+                <p>&copy; 2026 AquaSmart Inc. All rights reserved.</p>
+            </footer>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 3. ML MODELS ANALYTICS PAGE -->
+    <!-- ========================================== -->
+    <div id="page-models" class="page">
+        <div class="page-inner">
+            <div class="dashboard-main-title">
+                <h1 class="page-title-animate"><i class="fa-solid fa-brain"></i> ML Model Analytics</h1>
+                <button id="retrain-models-page-btn" class="btn btn-purple-glow">
+                    <i class="fa-solid fa-rotate"></i> <span>Retrain All Models</span>
+                </button>
+            </div>
+
+            <!-- MODEL COMPARISON OVERVIEW CARDS -->
+            <div class="model-overview-cards stagger-1">
+                <div class="model-stat-card glass-panel hover-lift">
+                    <div class="model-stat-icon purple"><i class="fa-solid fa-chart-line"></i></div>
+                    <div class="model-stat-info">
+                        <span class="model-stat-label">Regression Models</span>
+                        <h2 class="model-stat-value counter" data-target="4" id="reg-model-count">0</h2>
+                    </div>
+                </div>
+                <div class="model-stat-card glass-panel hover-lift">
+                    <div class="model-stat-icon blue"><i class="fa-solid fa-tags"></i></div>
+                    <div class="model-stat-info">
+                        <span class="model-stat-label">Classification Models</span>
+                        <h2 class="model-stat-value counter" data-target="5" id="clf-model-count">0</h2>
+                    </div>
+                </div>
+                <div class="model-stat-card glass-panel hover-lift">
+                    <div class="model-stat-icon green"><i class="fa-solid fa-bullseye"></i></div>
+                    <div class="model-stat-info">
+                        <span class="model-stat-label">Best R² Score</span>
+                        <h2 class="model-stat-value" id="best-r2">--</h2>
+                    </div>
+                </div>
+                <div class="model-stat-card glass-panel hover-lift">
+                    <div class="model-stat-icon orange"><i class="fa-solid fa-trophy"></i></div>
+                    <div class="model-stat-info">
+                        <span class="model-stat-label">Best Accuracy</span>
+                        <h2 class="model-stat-value" id="best-accuracy">--</h2>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REGRESSION COMPARISON SECTION -->
+            <div class="model-section glass-panel stagger-2">
+                <div class="section-header">
+                    <h2><i class="fa-solid fa-chart-line"></i> Regression Model Comparison</h2>
+                    <p>Predicting continuous <strong>soil moisture %</strong> values from environmental telemetry data</p>
+                </div>
+
+                <!-- VISUAL BAR CHART COMPARISON -->
+                <div class="comparison-grid">
+                    <div class="chart-comparison-container">
+                        <h3>R² Score Comparison <span class="chart-hint">(closer to 1.0 is better)</span></h3>
+                        <div class="bar-chart" id="r2-bar-chart">
+                            <!-- Injected dynamically -->
+                            <div class="bar-chart-loading">Loading model metrics...</div>
+                        </div>
+                    </div>
+                    <div class="chart-comparison-container">
+                        <h3>RMSE Comparison <span class="chart-hint">(lower is better)</span></h3>
+                        <div class="bar-chart" id="rmse-bar-chart">
+                            <div class="bar-chart-loading">Loading model metrics...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- REGRESSION TABLE -->
+                <div class="table-responsive">
+                    <table class="metrics-table">
+                        <thead>
+                            <tr>
+                                <th>Model Name</th>
+                                <th>RMSE</th>
+                                <th>R² Score</th>
+                                <th>MAE</th>
+                                <th>Ranking</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="regression-metrics-body">
+                            <tr><td colspan="6" class="table-loading"><div class="shimmer-line"></div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- CLASSIFICATION COMPARISON SECTION -->
+            <div class="model-section glass-panel stagger-3">
+                <div class="section-header">
+                    <h2><i class="fa-solid fa-tags"></i> Classification Model Comparison</h2>
+                    <p>Predicting binary <strong>irrigation decisions</strong> (irrigate vs. skip) from sensor readings</p>
+                </div>
+
+                <!-- VISUAL BAR CHART COMPARISON -->
+                <div class="comparison-grid">
+                    <div class="chart-comparison-container">
+                        <h3>Accuracy Comparison <span class="chart-hint">(higher is better)</span></h3>
+                        <div class="bar-chart" id="accuracy-bar-chart">
+                            <div class="bar-chart-loading">Loading model metrics...</div>
+                        </div>
+                    </div>
+                    <div class="chart-comparison-container">
+                        <h3>F1 Score Comparison <span class="chart-hint">(harmonic mean of precision & recall)</span></h3>
+                        <div class="bar-chart" id="f1-bar-chart">
+                            <div class="bar-chart-loading">Loading model metrics...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MULTI-METRIC COMPARISON -->
+                <div class="chart-comparison-container full-width stagger-4">
+                    <h3>Multi-Metric Radar View <span class="chart-hint">(Accuracy, Precision, Recall, F1)</span></h3>
+                    <div class="multi-metric-grid" id="multi-metric-grid">
+                        <div class="bar-chart-loading">Loading model metrics...</div>
+                    </div>
+                </div>
+
+                <!-- CLASSIFICATION TABLE -->
+                <div class="table-responsive">
+                    <table class="metrics-table">
+                        <thead>
+                            <tr>
+                                <th>Model Name</th>
+                                <th>Accuracy</th>
+                                <th>Precision</th>
+                                <th>Recall</th>
+                                <th>F1-Score</th>
+                                <th>Ranking</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="classification-metrics-body">
+                            <tr><td colspan="7" class="table-loading"><div class="shimmer-line"></div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+
+            <!-- WEATHER & SMART PREDICTION PANEL -->
+            <div class="model-section glass-panel stagger-5">
+                <div class="section-header">
+                    <h2><i class="fa-solid fa-cloud-sun-rain"></i> Live Weather & Irrigation Forecast</h2>
+                    <p>Real-time weather conditions and AI-powered irrigation recommendations for your field</p>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <!-- Extended Weather Info -->
+                    <div>
+                        <h4 style="margin-bottom: 15px; color: var(--text-sub); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fa-solid fa-cloud-sun"></i> Current Conditions</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div class="glass-panel hover-lift" style="padding: 15px; text-align: center; border-radius: 12px;">
+                                <div style="font-size: 1.8rem; margin-bottom: 5px;">🌡️</div>
+                                <div style="font-size: 1.4rem; font-weight: 800; color: var(--color-orange);" id="wx-temp2">--°C</div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Temperature</div>
+                            </div>
+                            <div class="glass-panel hover-lift" style="padding: 15px; text-align: center; border-radius: 12px;">
+                                <div style="font-size: 1.8rem; margin-bottom: 5px;">💧</div>
+                                <div style="font-size: 1.4rem; font-weight: 800; color: var(--color-blue);" id="wx-humidity2">--%</div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Air Humidity</div>
+                            </div>
+                            <div class="glass-panel hover-lift" style="padding: 15px; text-align: center; border-radius: 12px;">
+                                <div style="font-size: 1.8rem; margin-bottom: 5px;">💨</div>
+                                <div style="font-size: 1.4rem; font-weight: 800; color: var(--color-teal);" id="wx-wind2">-- km/h</div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Wind Speed</div>
+                            </div>
+                            <div class="glass-panel hover-lift" style="padding: 15px; text-align: center; border-radius: 12px;">
+                                <div style="font-size: 1.8rem; margin-bottom: 5px;" id="wx-icon2">⛅</div>
+                                <div style="font-size: 0.9rem; font-weight: 700; color: white;" id="wx-desc2">Loading...</div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Sky Condition</div>
+                            </div>
+                        </div>
+                        <div class="glass-panel" id="wx-rain-advisory" style="margin-top: 12px; padding: 14px; border-radius: 10px; background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.15);">
+                            <p style="margin: 0; font-size: 0.85rem; color: var(--color-blue);"><i class="fa-solid fa-cloud-rain"></i> <strong>Rain Advisory:</strong> <span id="wx-rain-text">Checking conditions...</span></p>
+                        </div>
+                    </div>
+
+                    <!-- Smart Irrigation Prediction -->
+                    <div>
+                        <h4 style="margin-bottom: 15px; color: var(--text-sub); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fa-solid fa-brain"></i> Smart Irrigation Advice</h4>
+                        <div class="glass-panel" id="ai-prediction-card" style="padding: 20px; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.15);">
+                            <div style="font-size: 3rem; margin-bottom: 8px;" id="pred-emoji">🤖</div>
+                            <h3 id="pred-action" style="font-size: 1.5rem; margin-bottom: 8px;">Analysing...</h3>
+                            <p id="pred-reason" style="font-size: 0.85rem; color: var(--text-sub); line-height: 1.5;">The AI is looking at soil moisture, temperature, and weather data to give you the best advice.</p>
+                        </div>
+                        <div style="margin-top: 12px; padding: 15px; border-radius: 10px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.04);">
+                            <h5 style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 10px;">What to do today</h5>
+                            <ul id="wx-advice-list" style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; color: var(--text-sub);">
+                                <li><i class="fa-solid fa-circle-notch fa-spin" style="color: var(--neon-purple);"></i> Loading advice...</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="system-footer">
+                <p>&copy; 2026 AquaSmart. Smart Farming, Better Harvest.</p>
+            </footer>
+        </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- 4. SENSOR HUB PAGE -->
+    <!-- ========================================== -->
+    <div id="page-sensors" class="page">
+        <div class="page-inner">
+            <div class="dashboard-main-title">
+                <h1 class="page-title-animate"><i class="fa-solid fa-rss"></i> Sensor Hub</h1>
+                <div class="system-status">
+                    <span class="status-indicator online pulse-dot"></span> Listening for Telemetry
+                </div>
+            </div>
+
+            <div class="sensors-grid">
+                <!-- LEFT: Integration Guide -->
+                <div class="sensor-guide-panel glass-panel stagger-1">
+                    <div class="section-header">
+                        <h2><i class="fa-solid fa-plug"></i> Integration Guide</h2>
+                        <p>Connect physical IoT devices to the AquaSmart REST API</p>
+                    </div>
+
+                    <div class="code-instructions">
+                        <h3>API Endpoint</h3>
+                        <div class="code-box">
+                            <span class="code-method">POST</span> http://localhost:5000/api/sensors/ingest
+                        </div>
+                        
+                        <h3>JSON Payload Format</h3>
+                        <pre class="code-json">{
+  "farm_id": "Farm_B",
+  "temperature": 27.5,
+  "humidity": 68.2,
+  "soil_moisture": 42.1,
+  "rainfall": 0.0
+}</pre>
+                    </div>
+
+                    <div class="integration-steps">
+                        <h3><i class="fa-solid fa-microchip"></i> ESP32 Hardware Setup</h3>
+                        <div class="step-cards">
+                            <div class="step-card hover-lift">
+                                <div class="step-num">1</div>
+                                <div class="step-content">
+                                    <h4>Configure Wi-Fi</h4>
+                                    <p>Set up Wi-Fi connection on your ESP32 board with your network credentials.</p>
+                                </div>
+                            </div>
+                            <div class="step-card hover-lift">
+                                <div class="step-num">2</div>
+                                <div class="step-content">
+                                    <h4>Install Libraries</h4>
+                                    <p>Install <code>ArduinoJson</code> and <code>HTTPClient</code> libraries in Arduino IDE.</p>
+                                </div>
+                            </div>
+                            <div class="step-card hover-lift">
+                                <div class="step-num">3</div>
+                                <div class="step-content">
+                                    <h4>Wire Sensors</h4>
+                                    <p>Connect soil moisture probe to ADC Pin 34 and DHT22 to a Digital Pin.</p>
+                                </div>
+                            </div>
+                            <div class="step-card hover-lift">
+                                <div class="step-num">4</div>
+                                <div class="step-content">
+                                    <h4>Upload & Monitor</h4>
+                                    <p>Use the template in <code>backend/physical_sensors.py</code> and watch real-time updates.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT: Live Sensor Feed & Test -->
+                <div class="sensor-live-panel glass-panel stagger-2">
+                    <div class="section-header">
+                        <h2><i class="fa-solid fa-satellite-dish"></i> Live Sensor Feed</h2>
+                    </div>
+
+                    <!-- Quick Test Panel -->
+                    <div class="sensor-test-panel">
+                        <h3><i class="fa-solid fa-flask"></i> Send Test Reading</h3>
+                        <div class="test-inputs">
+                            <div class="test-input-group">
+                                <label>Farm</label>
+                                <select id="test-farm-selector">
+                                    <option value="Farm_A">Farm A</option>
+                                    <option value="Farm_B">Farm B</option>
+                                    <option value="Farm_C">Farm C</option>
+                                </select>
+                            </div>
+                            <div class="test-input-group">
+                                <label>Temp (°C)</label>
+                                <input type="number" id="test-temp" value="28.5" step="0.1">
+                            </div>
+                            <div class="test-input-group">
+                                <label>Humidity (%)</label>
+                                <input type="number" id="test-humidity" value="65.0" step="0.1">
+                            </div>
+                            <div class="test-input-group">
+                                <label>Soil (%)</label>
+                                <input type="number" id="test-soil" value="38.0" step="0.1">
+                            </div>
+                            <div class="test-input-group">
+                                <label>Rain (mm)</label>
+                                <input type="number" id="test-rain" value="0.0" step="0.1">
+                            </div>
+                        </div>
+                        <button id="send-test-reading-btn" class="btn btn-purple-glow btn-block">
+                            <i class="fa-solid fa-paper-plane"></i> <span>Send Test Reading</span>
+                        </button>
+                    </div>
+
+                    <!-- Live Log Table -->
+                    <div class="sensor-log-section">
+                        <div class="log-header">
+                            <h3><i class="fa-solid fa-clock-rotate-left"></i> Recent Ingested Readings</h3>
+                            <button id="refresh-sensor-log-btn" class="btn-icon" title="Refresh">
+                                <i class="fa-solid fa-arrows-rotate"></i>
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="metrics-table sensor-log-table">
+                                <thead>
+                                    <tr>
+                                        <th>Timestamp</th>
+                                        <th>Farm</th>
+                                        <th>Temp</th>
+                                        <th>Humidity</th>
+                                        <th>Soil %</th>
+                                        <th>Rain</th>
+                                        <th>Source</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sensor-log-body">
+                                    <tr><td colspan="7" class="table-loading"><div class="shimmer-line"></div></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="system-footer">
+                <p>&copy; 2026 AquaSmart Inc. All rights reserved.</p>
+            </footer>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 5. ABOUT PAGE -->
+    <!-- ========================================== -->
+    <div id="page-about" class="page">
+        <div class="page-inner">
+            <!-- Hero Section -->
+            <div class="about-hero stagger-1">
+                <div class="about-hero-content">
+                    <h1 class="about-title">
+                        <span class="typing-text">AquaSmart</span>
+                    </h1>
+                    <p class="about-subtitle">Smart Watering for Better Yields</p>
+                    <p class="about-desc">AquaSmart helps you water your fields exactly when needed, saving water and improving your crop yields. Our smart system looks at weather, temperature, and soil data to make automatic decisions tailored to your specific crops.</p>
+                </div>
+            </div>
+
+            <!-- Feature Cards -->
+            <div class="about-features stagger-2">
+                <div class="feature-card glass-panel hover-tilt">
+                    <div class="feature-icon purple-glow">
+                        <i class="fa-solid fa-droplet"></i>
+                    </div>
+                    <h3>Water Savings</h3>
+                    <p>Only irrigate when your soil needs it. Our AI learns your field's patterns to prevent overwatering.</p>
+                </div>
+                <div class="feature-card glass-panel hover-tilt">
+                    <div class="feature-icon blue-glow">
+                        <i class="fa-solid fa-seedling"></i>
+                    </div>
+                    <h3>Crop Specific</h3>
+                    <p>Whether you grow Rice, Maize, or Mustard, the system adjusts its moisture targets to give your plants exactly what they need.</p>
+                </div>
+                <div class="feature-card glass-panel hover-tilt">
+                    <div class="feature-icon green-glow">
+                        <i class="fa-solid fa-satellite-dish"></i>
+                    </div>
+                    <h3>Easy Sensors</h3>
+                    <p>Plug and play support for soil moisture and temperature sensors right in your fields.</p>
+                </div>
+                <div class="feature-card glass-panel hover-tilt">
+                    <div class="feature-icon orange-glow">
+                        <i class="fa-solid fa-mobile-screen"></i>
+                    </div>
+                    <h3>Real-Time Control</h3>
+                    <p>See exactly what's happening in your fields right now from your phone or computer.</p>
+                </div>
+            </div>
+
+            <!-- Tech Stack -->
+            <div class="about-tech glass-panel stagger-3">
+                <div class="section-header">
+                    <h2><i class="fa-solid fa-layer-group"></i> Technology Stack</h2>
+                </div>
+                <div class="tech-grid">
+                    <div class="tech-item hover-lift">
+                        <i class="fa-brands fa-python"></i>
+                        <span>Python 3.13</span>
+                    </div>
+                    <div class="tech-item hover-lift">
+                        <i class="fa-solid fa-flask-vial"></i>
+                        <span>Flask</span>
+                    </div>
+                    <div class="tech-item hover-lift">
+                        <i class="fa-solid fa-leaf"></i>
+                        <span>MongoDB</span>
+                    </div>
+                    <div class="tech-item hover-lift">
+                        <i class="fa-solid fa-robot"></i>
+                        <span>Scikit-Learn</span>
+                    </div>
+                    <div class="tech-item hover-lift">
+                        <i class="fa-solid fa-tree"></i>
+                        <span>XGBoost</span>
+                    </div>
+                    <div class="tech-item hover-lift">
+                        <i class="fa-brands fa-js"></i>
+                        <span>Vanilla JS</span>
+                    </div>
+                    <div class="tech-item hover-lift">
+                        <i class="fa-brands fa-css3-alt"></i>
+                        <span>CSS3</span>
+                    </div>
+                    <div class="tech-item hover-lift">
+                        <i class="fa-solid fa-key"></i>
+                        <span>JWT Auth</span>
+                    </div>
+                    <div class="tech-item hover-lift">
+                        <i class="fa-brands fa-google"></i>
+                        <span>Google OAuth</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Project Info -->
+            <div class="about-project glass-panel stagger-4">
+                <div class="section-header">
+                    <h2><i class="fa-solid fa-info-circle"></i> Project Info</h2>
+                </div>
+                <div class="project-info-grid">
+                    <div class="project-info-item">
+                        <span class="info-label">Version</span>
+                        <span class="info-value">2.0.0</span>
+                    </div>
+                    <div class="project-info-item">
+                        <span class="info-label">License</span>
+                        <span class="info-value">MIT</span>
+                    </div>
+                    <div class="project-info-item">
+                        <span class="info-label">API Endpoints</span>
+                        <span class="info-value">12+</span>
+                    </div>
+                    <div class="project-info-item">
+                        <span class="info-label">ML Models</span>
+                        <span class="info-value">9 Active</span>
+                    </div>
+                    <div class="project-info-item">
+                        <span class="info-label">Database</span>
+                        <span class="info-value">MongoDB</span>
+                    </div>
+                    <div class="project-info-item">
+                        <span class="info-label">Auth</span>
+                        <span class="info-value">JWT + OAuth</span>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="system-footer">
+                <p>&copy; 2026 AquaSmart Inc. All rights reserved.</p>
+            </footer>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    
+    <!-- ========================================== -->
+    <!-- ADD FIELD MODAL -->
+    <!-- ========================================== -->
+    <div id="add-field-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel" style="max-width: 450px;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; margin-bottom: 20px;">
+                <h2 style="font-size: 1.5rem; margin: 0;"><i class="fa-solid fa-seedling" style="color: var(--neon-purple);"></i> Add New Field</h2>
+                <button id="close-modal-btn" style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="add-field-form">
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-size: 0.9rem; color: var(--text-muted);">Field Name</label>
+                        <input type="text" id="new-field-name" placeholder="e.g., North Sector" required style="width: 100%; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white;">
+                    </div>
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-size: 0.9rem; color: var(--text-muted);">Crop Type</label>
+                        <select id="new-field-crop" required style="width: 100%; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white;">
+                            <option value="Rice">Rice (Target 60%)</option>
+                            <option value="Sugarcane">Sugarcane (Target 55%)</option>
+                            <option value="Maize">Maize (Target 45%)</option>
+                            <option value="Vegetables">Vegetables (Target 40%)</option>
+                            <option value="Wheat">Wheat (Target 35%)</option>
+                            <option value="Mustard">Mustard (Target 30%)</option>
+                        </select>
+                    </div>
+                    <div class="input-group" style="margin-bottom: 25px;">
+                        <label style="display: block; margin-bottom: 5px; font-size: 0.9rem; color: var(--text-muted);">Soil Type</label>
+                        <select id="new-field-soil" style="width: 100%; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white;">
+                            <option value="Loam">Loam</option>
+                            <option value="Clay">Clay</option>
+                            <option value="Sand">Sand</option>
+                            <option value="Silt">Silt</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-purple-glow btn-block" style="width: 100%; padding: 12px; font-size: 1.1rem; border-radius: 8px;"><i class="fa-solid fa-check"></i> Save Field</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- TOAST NOTIFICATIONS CONTAINER -->
+    <div id="toast-container" class="toast-container"></div>
+
+</body>
+</html>

@@ -1,0 +1,55 @@
+{
+    "regression": {
+        "Linear Regression": {
+            "rmse": 14.475662290533709,
+            "r2": 0.3259046065135177
+        },
+        "Random Forest": {
+            "rmse": 15.484123502348682,
+            "r2": 0.22870995284866968
+        },
+        "XGBoost": {
+            "rmse": 15.47720898546939,
+            "r2": 0.22939864630781714
+        },
+        "LSTM (Neural Network)": {
+            "rmse": 14.560901530010097,
+            "r2": 0.31794247657304264
+        }
+    },
+    "classification": {
+        "Logistic Regression": {
+            "accuracy": 1.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1_score": 0.0
+        },
+        "SVM": {
+            "accuracy": 1.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1_score": 0.0
+        },
+        "Random Forest": {
+            "accuracy": 1.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1_score": 0.0
+        },
+        "XGBoost": {
+            "accuracy": 1.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1_score": 0.0
+        },
+        "Voting Ensemble": {
+            "accuracy": 1.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1_score": 0.0
+        }
+    },
+    "framework_status": {
+        "tensorflow_available": false
+    }
+}
