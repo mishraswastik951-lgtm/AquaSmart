@@ -8,12 +8,35 @@ services:
     ports:
       - "5000:8080"
     environment:
-      - MONGODB_URI=${MONGODB_URI:-mongodb://localhost:27017/aquasmart}
+      - MONGODB_URI=mongodb://mongodb:27017/aquasmart
       - FIREBASE_CONFIG=${FIREBASE_CONFIG}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - FLASK_ENV=development
     depends_on:
       - redis
+      - mongodb
+    networks:
+      - aquasmart_net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://localhost:5000
+    depends_on:
+      - backend
+    networks:
+      - aquasmart_net
+
+  mongodb:
+    image: mongo:6
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
     networks:
       - aquasmart_net
 
@@ -23,6 +46,9 @@ services:
       - "6379:6379"
     networks:
       - aquasmart_net
+
+volumes:
+  mongo_data:
 
 networks:
   aquasmart_net:
