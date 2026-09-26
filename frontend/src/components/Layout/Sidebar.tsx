@@ -26,7 +26,7 @@ export const Sidebar: React.FC = () => {
         >
           <Droplet className="w-8 h-8 text-brand-primary fill-brand-primary/20" />
         </motion.div>
-        <span className="text-2xl font-bold tracking-tight text-gradient-primary">Farmlytics</span>
+        <span className="text-2xl font-bold tracking-tight text-gradient-primary">AquaSmart</span>
       </div>
 
       <nav className="flex-1 px-4 space-y-2">

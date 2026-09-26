@@ -27,8 +27,8 @@ const ProfilePage = () => {
                 <User className="w-16 h-16 text-gray-500" />
               </div>
             </div>
-            <h2 className="text-xl font-bold text-white mb-1">Jane Doe</h2>
-            <p className="text-brand-light font-medium text-sm mb-4">Lead Agronomist</p>
+            <h2 className="text-xl font-bold text-white mb-1">Swastik Mishra</h2>
+            <p className="text-brand-light font-medium text-sm mb-4">Founder & Lead Developer</p>
             <div className="flex items-center gap-2 text-xs font-medium bg-surface/50 px-3 py-1.5 rounded-full border border-white/5">
               <ShieldCheck className="w-4 h-4 text-brand-primary" /> Super Admin
             </div>
@@ -37,16 +37,16 @@ const ProfilePage = () => {
           <div className="glass-card p-6 space-y-4">
             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Contact Info</h3>
             <div className="flex items-center gap-3 text-sm text-gray-300">
-              <Mail className="w-4 h-4 text-gray-500" /> jane.doe@farmlytics.com
+              <Mail className="w-4 h-4 text-gray-500" /> swastik@aquasmart.com
             </div>
             <div className="flex items-center gap-3 text-sm text-gray-300">
-              <Phone className="w-4 h-4 text-gray-500" /> +1 (555) 987-6543
+              <Phone className="w-4 h-4 text-gray-500" /> +91 98765 43210
             </div>
             <div className="flex items-center gap-3 text-sm text-gray-300">
-              <MapPin className="w-4 h-4 text-gray-500" /> Greenfield Valley, CA
+              <MapPin className="w-4 h-4 text-gray-500" /> India
             </div>
             <div className="flex items-center gap-3 text-sm text-gray-300">
-              <Building className="w-4 h-4 text-gray-500" /> AquaSmart Corp
+              <Building className="w-4 h-4 text-gray-500" /> AquaSmart Technologies
             </div>
           </div>
         </div>
