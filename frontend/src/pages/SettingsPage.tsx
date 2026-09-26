@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, Droplets, Bell, Brain, Database, ShieldCheck, Wifi } from 'lucide-react';
+import { Settings, Droplets, Bell, Brain, Database, ShieldCheck, Wifi, RotateCcw } from 'lucide-react';
 import clsx from 'clsx';
 
 const Toggle = ({ active }) => (
